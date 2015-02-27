@@ -22,7 +22,6 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
         this.x = x;
         this.y = y;
         this.playerID = playerID;
-        //TODO Write your implementation for this method
 
         // Create game board in the correct dimensions where x = columns and y = rows
         // (why this has to be opposite to linear algebra beats me)
@@ -84,8 +83,8 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
                 if (fieldValue != previousValue) {sum = 0;}
                 previousValue = fieldValue;
                 sum += fieldValue;
-                if (sum == 4) { return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
-                if (sum == 8 ) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+                if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
             }
         }
 
@@ -104,8 +103,8 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
                 if (fieldValue != previousValue) {sum = 0;}
                 previousValue = fieldValue;
                 sum += fieldValue;
-                if (sum == 4) { return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
-                if (sum == 8 ) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+                if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
             }
         }
 
@@ -116,31 +115,20 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
         int sum;
         int columns = gameBoard.length;
         int rows = gameBoard[0].length;
-        for (int r = 0; r < rows; r++) {
-            sum = 0;
-            int previousValue = 0;
-            for (int c = 0; c < columns; c++) {
 
-                    int fieldValue = gameBoard[c][r];
-                    if (fieldValue != previousValue) {
-                        sum = 0;
-                    }
+        for (int r = 0; r < rows - 3; r++) {
+            for (int c = 0; c < columns-3; c++) {
+                sum = 0;
+                int previousValue = 0;
+                for (int i = 0; i < 4 ; i++) {
+                    int fieldValue = gameBoard[c+i][r+i]; // add i to both to move diagonally
+                    if (fieldValue != previousValue) {sum = 0;}
                     previousValue = fieldValue;
                     sum += fieldValue;
-                    if (sum == 4) {
-                        return 1;
-                    } // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
-                    if (sum == 8) {
-                        return 2;
-                    } // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+                    if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                    if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
                 }
             }
-        for (int r = 0; r < rows - 3; r++) {
-            for (int i = 1; i < 5 ; i++) {
-                int fieldValue = gameBoard[c][r];
-            }
-        }
-        for (int r = 0, c = 0; r < rows-3 && c < columns-3; r++, c++){ // minus 3 b/c we don't need to check last 3 spots since we need 4 to win.
 
         }
 
