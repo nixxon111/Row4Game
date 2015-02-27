@@ -42,7 +42,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
          PLAYER2 WIN = 2
          */
 
-        int winner = -1;
+        int winner = -1; // initialized with -1 so that we skip the if-statements and return NOT_FINISHED
 
         winner = checkVertically(gameBoard);
         winner = checkHorizontally(gameBoard);
