@@ -29,17 +29,26 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
         this.gameBoard = new int[x][y]; // initialized with zeros by default
 
     }
-	
-    
+
+    /**
+     * Checks if the game is finished or not.
+     * @return the winner of the game
+     */
     public Winner gameFinished() {
-        //TODO Write your implementation for this method
+        /*
+        We use the following codes for game status:
+         NOT_FINISHED = -1
+         TIE = 0
+         PLAYER1 WIN = 1
+         PLAYER2 WIN = 2
+         */
 
         int winner = -1;
 
-        if (checkVertically(gameBoard)) {}
-        if (checkHorizontally(gameBoard)) {}
-        if (checkDiagonally(gameBoard)) {}
-        if (checkBoardFull(gameBoard)) {}
+        winner = checkVertically(gameBoard);
+        winner = checkHorizontally(gameBoard);
+        winner = checkDiagonally(gameBoard);
+        winner = checkBoardFull(gameBoard);
 
         if (winner == 0) {return Winner.TIE;}
         if (winner == 1) {return Winner.PLAYER1;}
@@ -48,17 +57,94 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
         return Winner.NOT_FINISHED;
     }
 
-    private boolean checkHorizontally(int[][] gameBoard) {
-        int sum = 0;
-        int col = gameBoard.length;
-        int row = gameBoard[0].length;
-        for (int c = 0; c < col; c++) {
-            for (int r = 0; r < row; r++) {
+    private int checkBoardFull(int[][] gameBoard) {
 
+        // Iterates through the entire game board looking for a field with value zero
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int c = 0; c < columns; c++) {
+            for (int r = 0; r < rows; r++) {
+                int fieldValue = gameBoard[c][r];
+                if (fieldValue == 0) {return -1;}
+            }
+        }
+        return 0;
+    }
+
+    private int checkVertically(int[][] gameBoard) {
+
+        int sum;
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int c = 0; c < columns; c++) {
+            sum = 0;
+            int previousValue = 0;
+            for (int r = 0; r < rows; r++) {
+                int fieldValue = gameBoard[c][r];
+                if (fieldValue != previousValue) {sum = 0;}
+                previousValue = fieldValue;
+                sum += fieldValue;
+                if (sum == 4) { return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                if (sum == 8 ) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
             }
         }
 
-        return false;
+        return -1;
+    }
+
+    private int checkHorizontally(int[][] gameBoard) {
+        int sum;
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int r = 0; r < rows; r++) {
+            sum = 0;
+            int previousValue = 0;
+            for (int c = 0; c < columns; c++) {
+                int fieldValue = gameBoard[c][r];
+                if (fieldValue != previousValue) {sum = 0;}
+                previousValue = fieldValue;
+                sum += fieldValue;
+                if (sum == 4) { return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                if (sum == 8 ) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+            }
+        }
+
+        return -1;
+    }
+
+    private int checkDiagonally(int[][] gameBoard) {
+        int sum;
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int r = 0; r < rows; r++) {
+            sum = 0;
+            int previousValue = 0;
+            for (int c = 0; c < columns; c++) {
+
+                    int fieldValue = gameBoard[c][r];
+                    if (fieldValue != previousValue) {
+                        sum = 0;
+                    }
+                    previousValue = fieldValue;
+                    sum += fieldValue;
+                    if (sum == 4) {
+                        return 1;
+                    } // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                    if (sum == 8) {
+                        return 2;
+                    } // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+                }
+            }
+        for (int r = 0; r < rows - 3; r++) {
+            for (int i = 1; i < 5 ; i++) {
+                int fieldValue = gameBoard[c][r];
+            }
+        }
+        for (int r = 0, c = 0; r < rows-3 && c < columns-3; r++, c++){ // minus 3 b/c we don't need to check last 3 spots since we need 4 to win.
+
+        }
+
+        return -1;
     }
 
     /**
