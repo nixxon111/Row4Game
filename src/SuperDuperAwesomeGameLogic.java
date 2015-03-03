@@ -6,9 +6,11 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
     private int y = 0;
     private int playerID;
     int count=0;
+
+    private int[][] gameBoard;
     
     public SuperDuperAwesomeGameLogic() {
-    	
+    	  // We initialize the instantiated object using the initializeGame method
     }
 
 	/**
@@ -23,15 +25,117 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
         this.x = x;
         this.y = y;
         this.playerID = playerID;
-        //TODO Write your implementation for this method
+
+        // Create game board in the correct dimensions where x = columns and y = rows
+        // (why this has to be opposite to linear algebra beats me)
+        this.gameBoard = new int[x][y]; // initialized with zeros by default
+
     }
-	
-    
+
+    /**
+     * Checks if the game is finished or not.
+     * @return the winner of the game
+     */
     public Winner gameFinished() {
-    	if (count++>=20) {
-    		return Winner.PLAYER1;
-    	}
+        /*
+        We use the following codes for game status:
+         NOT_FINISHED = -1
+         TIE = 0
+         PLAYER1 WIN = 1
+         PLAYER2 WIN = 2
+         */
+
+        int winner = -1; // initialized with -1 so that we skip the if-statements and return NOT_FINISHED
+
+        winner = checkVertically(gameBoard);
+        winner = checkHorizontally(gameBoard);
+        winner = checkDiagonally(gameBoard);
+        winner = checkBoardFull(gameBoard);
+
+        if (winner == 0) {return Winner.TIE;}
+        if (winner == 1) {return Winner.PLAYER1;}
+        if (winner == 2) {return Winner.PLAYER2;}
+
         return Winner.NOT_FINISHED;
+    }
+
+    private int checkBoardFull(int[][] gameBoard) {
+
+        // Iterates through the entire game board looking for a field with value zero
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int c = 0; c < columns; c++) {
+            for (int r = 0; r < rows; r++) {
+                int fieldValue = gameBoard[c][r];
+                if (fieldValue == 0) {return -1;}
+            }
+        }
+        return 0;
+    }
+
+    private int checkVertically(int[][] gameBoard) {
+
+        int sum;
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int c = 0; c < columns; c++) {
+            sum = 0;
+            int previousValue = 0;
+            for (int r = 0; r < rows; r++) {
+                int fieldValue = gameBoard[c][r];
+                if (fieldValue != previousValue) {sum = 0;}
+                previousValue = fieldValue;
+                sum += fieldValue;
+                if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+            }
+        }
+
+        return -1;
+    }
+
+    private int checkHorizontally(int[][] gameBoard) {
+        int sum;
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+        for (int r = 0; r < rows; r++) {
+            sum = 0;
+            int previousValue = 0;
+            for (int c = 0; c < columns; c++) {
+                int fieldValue = gameBoard[c][r];
+                if (fieldValue != previousValue) {sum = 0;}
+                previousValue = fieldValue;
+                sum += fieldValue;
+                if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+            }
+        }
+
+        return -1;
+    }
+
+    private int checkDiagonally(int[][] gameBoard) {
+        int sum;
+        int columns = gameBoard.length;
+        int rows = gameBoard[0].length;
+
+        for (int r = 0; r < rows - 3; r++) {
+            for (int c = 0; c < columns-3; c++) {
+                sum = 0;
+                int previousValue = 0;
+                for (int i = 0; i < 4 ; i++) {
+                    int fieldValue = gameBoard[c+i][r+i]; // add i to both to move diagonally
+                    if (fieldValue != previousValue) {sum = 0;}
+                    previousValue = fieldValue;
+                    sum += fieldValue;
+                    if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
+                    if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
+                }
+            }
+
+        }
+
+        return -1;
     }
 
     /**
@@ -41,7 +145,17 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
      * @param playerID The ID of the current player.
      */
     public void insertCoin(int column, int playerID) {
-        //TODO Write your implementation for this method	
+
+        //Iterate through rows in column until we find empty spot and place coin (code sakset fra FourConnectGUI)
+        if(column == -1) {
+            //todo throw exception
+        }
+        if (gameBoard[column][0] != 0) {
+            //todo throw exception
+        }
+        int r = gameBoard[column].length-1;
+        while(gameBoard[column][r]!=0) r--;
+        gameBoard[column][r]=playerID;
     }
 
     /**
