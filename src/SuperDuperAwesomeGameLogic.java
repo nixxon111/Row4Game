@@ -1,8 +1,11 @@
+import java.util.Random;
+
 
 public class SuperDuperAwesomeGameLogic implements IGameLogic {
     private int x = 0;
     private int y = 0;
     private int playerID;
+    int count=0;
     
     public SuperDuperAwesomeGameLogic() {
     	
@@ -25,7 +28,9 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 	
     
     public Winner gameFinished() {
-        //TODO Write your implementation for this method
+    	if (count++>=20) {
+    		return Winner.PLAYER1;
+    	}
         return Winner.NOT_FINISHED;
     }
 
@@ -44,8 +49,9 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
      * implement/call your heuristic evaluation functions etc. 
      */
     public int decideNextMove() {
-        //TODO Write your implementation for this method
-        return 0;
+        Random ra = new Random();
+        int x = ra.nextInt(7);
+        return x;
     }
 
 }
