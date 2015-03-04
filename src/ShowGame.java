@@ -54,7 +54,8 @@ public class ShowGame
                 errMsg = "Your GameInstance caused an illegal access exception.";
                 err = true;
             } catch(InvocationTargetException ite) {
-                errMsg = "Your GameInstance constructor threw an exception: " + ite.toString();
+                errMsg = "Your GameInstance constructor threw an exception: " + ite.toString() + "";
+                ite.printStackTrace();
                 err = true;
             }
 

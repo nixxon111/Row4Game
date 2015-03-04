@@ -3,10 +3,11 @@ import java.util.Random;
 
 class MiniMaxTree {
 
+	static int count = 300;
 	Node root;
 
 	public MiniMaxTree(int[][] gameboard) {
-		root = new Node(gameboard);
+		// root = new Node(gameboard, 1);
 	}
 
 	class Node {
@@ -14,100 +15,88 @@ class MiniMaxTree {
 		int[][] gb;
 		private Node[] nodes;
 
-		public Node(int[][] gb, int i, int playerID) {
+		public Node(int i, int playerID) {
 			nodes = new Node[7];
 			for (int j = 0; j < gb.length; j++) {
-				insertCoin(gb, i, playerID);
+				insertCoin(this.gb, j, playerID);
 			}
-			
+
 			this.gb = gb;
 		}
-
-		public Node(int[][] gameboard) {
-			this.gb = Arrays.copyOf(gameboard, gameboard.length);
-			nodes = new Node[gameboard.length];
-			int playerId=1;
-			for (int i = 0; i < gameboard.length; i++) {
-				nodes[i] = new Node(this.gb, i, (playerId++%2)+1);
+		
+		public void insertCoin(int i, int playerID) {
+			if (i == -1) {
+				// todo throw exception
 			}
+			if (gb[i][0] != 0) {
+				// todo throw exception
+			}
+			int r = gb[i].length - 1;
+			SuperDuperAwesomeGameLogic.printGameboard(gb);
+			System.out.println();
+
+			while (gb[i][r] != 0)
+				r--;
+			if (!full(gb)) {
+				gb[i][r] = playerID;
+			}
+		}
+
+		public Node[] getNodes() {
+			return nodes;
+		}
+
+		public void setNodes(Node[] nodes) {
+			this.nodes = nodes;
 		}
 
 	}
 
-	public int MiniMax(int[][] gb) {
+	public int MiniMax() {
 		int alpha = -9999;
 		int beta = 9999;
 		int bestScore = -Integer.MAX_VALUE;
 		int bestMove = -1;
 		int depth = 10;
-			
-			alpha = Math.max(alpha,
-					miniMaxMini(root, alpha, beta));
-			if (alpha > bestScore) {
-				//bestMove = i;
-				bestScore = alpha;
-			}
+
+		alpha = Math.max(alpha, miniMaxMini(root, alpha, beta));
+		if (alpha > bestScore) {
+			// bestMove = i;
+			bestScore = alpha;
+		}
 		return bestMove;
 
 	}
 
-	public void insertCoin(int[][] gb, int i, int playerID) {
-		if (i == -1) {
-			// todo throw exception
+	
+
+	private boolean full(int[][] gb) {
+		for (int i = 0; i < gb.length; i++) {
+			if (gb[0][i] == 0)
+				return false;
 		}
-		if (gb[i][0] != 0) {
-			// todo throw exception
-		}
-		int r = gb[i].length - 1;
-		while (gb[i][r] != 0)
-			r--;
-		gb[i][r] = playerID;
+		return true;
 	}
 
 	/**
 	 * 
 	 * @param i
 	 *            the child node we go into
-	 * @param depth
-	 *            = remaining depth to travel
-	 * @param alpha
+	
 	 * @return
 	 */
-	private int miniMaxMini(Node node, int alpha, int beta) {
-		if (node.nodes[0] == null) {
-			for (int i=0;i<node.nodes.length;i++) {
-				node.nodes[i] = new Node(node.gb, i, 2);
-			}
-		}
-		for (int i = 0; i < node.nodes.length; i++) {
-			alpha = Math.max(alpha, miniMaxMax(root.nodes[i], alpha, beta));
-
-			if (alpha >= beta) {
-				return beta;
-			}
-		}
-		return alpha;
+	private int miniMaxMini(Node node) {
+		
 
 	}
 
-	private int miniMaxMax(Node node, int alpha, int beta) {
-		if (node.nodes[0] == null) {
-			for (int i=0;i<node.nodes.length;i++) {
-				node.nodes[i] = new Node(node.gb, i, 1);
-			}
-		}
-		if (node.nodes == null) {
-			return SuperDuperAwesomeGameLogic.heuristic(node.gb);
-		}
-		for (int i = 0; i < node.nodes.length; i++) {
+	private int miniMaxMax(Node node) {
+		
+	}
 
-			beta = Math.min(beta, miniMaxMini(root.nodes[i], alpha, beta));
-
-			if (alpha >= beta) {
-				return alpha;
-			}
-		}
-		return beta;
+	public void expandTree() {
+		// GOGOGO CHRISTIAN!
+		
 	}
 }
 
@@ -118,17 +107,25 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 	int count = 0;
 
 	private int[][] gameBoard;
-	MiniMaxTree mm;
+	private MiniMaxTree mm;
+
+	static public void printGameboard(int[][] gb) {
+		for (int i = 0; i < gb.length; i++) {
+			for (int j = 0; j < gb[0].length; j++) {
+				System.out.print(gb[i][j]);
+			}
+			System.out.println();
+		}
+	}
 
 	public SuperDuperAwesomeGameLogic() {
-		this.mm = new MiniMaxTree(gameBoard);
 		// We initialize the instantiated object using the initializeGame method
 	}
 
 	public static int heuristic(int[][] gb) {
 		Random r = new Random();
-		
-		return r.nextInt(20)-10;
+
+		return r.nextInt(20) - 10;
 	}
 
 	/**
@@ -152,6 +149,8 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		// (why this has to be opposite to linear algebra beats me)
 		this.gameBoard = new int[x][y]; // initialized with zeros by default
 
+		this.mm = new MiniMaxTree(gameBoard);
+
 	}
 
 	/**
@@ -168,16 +167,38 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		int winner = -1; // initialized with -1 so that we skip the
 							// if-statements and return NOT_FINISHED
 
-		/*
-		 * winner = checkVertically(gameBoard); if (winner == 0) {return
-		 * Winner.TIE;} if (winner == 1) {return Winner.PLAYER1;} if (winner ==
-		 * 2) {return Winner.PLAYER2;} winner = checkHorizontally(gameBoard); if
-		 * (winner == 0) {return Winner.TIE;} if (winner == 1) {return
-		 * Winner.PLAYER1;} if (winner == 2) {return Winner.PLAYER2;} winner =
-		 * checkDiagonally(gameBoard); if (winner == 0) {return Winner.TIE;} if
-		 * (winner == 1) {return Winner.PLAYER1;} if (winner == 2) {return
-		 * Winner.PLAYER2;} winner = checkBoardFull(gameBoard);
-		 */
+		winner = checkVertically(gameBoard);
+		if (winner == 0) {
+			return Winner.TIE;
+		}
+		if (winner == 1) {
+			return Winner.PLAYER1;
+		}
+		if (winner == 2) {
+			return Winner.PLAYER2;
+		}
+		winner = checkHorizontally(gameBoard);
+		if (winner == 0) {
+			return Winner.TIE;
+		}
+		if (winner == 1) {
+			return Winner.PLAYER1;
+		}
+		if (winner == 2) {
+			return Winner.PLAYER2;
+		}
+		winner = checkDiagonally(gameBoard);
+		if (winner == 0) {
+			return Winner.TIE;
+		}
+		if (winner == 1) {
+			return Winner.PLAYER1;
+		}
+		if (winner == 2) {
+			return Winner.PLAYER2;
+		}
+		winner = checkBoardFull(gameBoard);
+
 		if (winner == 0) {
 			return Winner.TIE;
 		}
@@ -324,6 +345,9 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		while (gameBoard[column][r] != 0)
 			r--;
 		gameBoard[column][r] = playerID;
+		
+		mm.root = mm.root.getNodes()[column];
+		
 	}
 
 	/**
@@ -331,10 +355,12 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 	 * heuristic evaluation functions etc.
 	 */
 	public int decideNextMove() {
-		// Random ra = new Random();
-		// int x = ra.nextInt(7);
-		// return x;
-		return mm.MiniMax(gameBoard);
+		mm.expandTree();
+		 Random ra = new Random();
+		 int x = ra.nextInt(7);
+		 return 0;
+		//return mm.MiniMax(gameBoard);
+		 
 	}
 
 }
