@@ -2,28 +2,26 @@ import java.util.Arrays;
 import java.util.Random;
 
 class MiniMaxTree {
-
-	static int count = 300;
 	Node root;
+	int playerID;
 
-	public MiniMaxTree(int[][] gameboard) {
-		// root = new Node(gameboard, 1);
+	public MiniMaxTree(int[][] gameboard, int playerID) {
+		root = new Node();
+		this.playerID = playerID;
 	}
 
 	class Node {
 
 		int[][] gb;
-		private Node[] nodes;
+		private Node[] children;
 
-		public Node(int i, int playerID) {
-			nodes = new Node[7];
-			for (int j = 0; j < gb.length; j++) {
-				insertCoin(this.gb, j, playerID);
-			}
-
-			this.gb = gb;
+		public Node(int i) {
 		}
 		
+		public Node() {
+			// TODO Auto-generated constructor stub
+		}
+
 		public void insertCoin(int i, int playerID) {
 			if (i == -1) {
 				// todo throw exception
@@ -32,8 +30,8 @@ class MiniMaxTree {
 				// todo throw exception
 			}
 			int r = gb[i].length - 1;
-			SuperDuperAwesomeGameLogic.printGameboard(gb);
-			System.out.println();
+			//SuperDuperAwesomeGameLogic.printGameboard(gb);
+			//System.out.println();
 
 			while (gb[i][r] != 0)
 				r--;
@@ -42,33 +40,72 @@ class MiniMaxTree {
 			}
 		}
 
-		public Node[] getNodes() {
-			return nodes;
+		public Node[] getChildren() {
+			return children;
 		}
 
-		public void setNodes(Node[] nodes) {
-			this.nodes = nodes;
+		public void setChildren(Node[] children) {
+			this.children = children;
 		}
 
 	}
 
-	public int MiniMax() {
-		int alpha = -9999;
-		int beta = 9999;
-		int bestScore = -Integer.MAX_VALUE;
-		int bestMove = -1;
-		int depth = 10;
-
-		alpha = Math.max(alpha, miniMaxMini(root, alpha, beta));
-		if (alpha > bestScore) {
-			// bestMove = i;
-			bestScore = alpha;
+	public int miniMax() {
+		int low=Integer.MAX_VALUE;
+		int high = -Integer.MAX_VALUE;
+		int result;
+		int choice = -1;
+		if (playerID==1) {
+			for (int i = 0; i < root.getChildren().length; i++) {
+				result = mini(root.getChildren()[i]);
+				if (result>high) {
+					high = result;
+					choice = i;
+				}
+			}
+			
+		} else {
+			for (int i = 0; i < root.getChildren().length; i++) {
+				result = max(root.getChildren()[i]);
+				if (result<low) {
+					low = result;
+					choice = i;
+				}
+			}
 		}
-		return bestMove;
-
+		System.out.println("choice: "+ choice);
+		return choice;
 	}
 
-	
+	private int mini(Node node) {
+		if (node.getChildren()== null ) {
+			return SuperDuperAwesomeGameLogic.heuristic(node.gb);
+		}
+		int lowest = Integer.MAX_VALUE;
+		int heuristic;
+		for (int i = 0; i < node.getChildren().length; i++) {
+			heuristic = mini(node.getChildren()[i]);
+			if (heuristic < lowest) lowest = heuristic;
+		}
+		
+		return lowest;
+	}
+
+	private int max(Node node) {
+		if (node.getChildren()== null ) {
+			return SuperDuperAwesomeGameLogic.heuristic(node.gb);
+		}
+		int highest = -Integer.MAX_VALUE;
+		int heuristic;
+		for (int i = 0; i < node.getChildren().length; i++) {
+			heuristic = mini(node.getChildren()[i]);
+			if (heuristic > highest) highest = heuristic;
+		}
+		
+		return highest;
+	}
+
+
 
 	private boolean full(int[][] gb) {
 		for (int i = 0; i < gb.length; i++) {
@@ -78,24 +115,15 @@ class MiniMaxTree {
 		return true;
 	}
 
-	/**
-	 * 
-	 * @param i
-	 *            the child node we go into
-	
-	 * @return
-	 */
-	private int miniMaxMini(Node node) {
-		
-
-	}
-
-	private int miniMaxMax(Node node) {
-		
-	}
-
 	public void expandTree() {
 		// GOGOGO CHRISTIAN!
+		if (root.getChildren()==null) {
+			root.children = new Node[7];
+		}
+		for (int i = 0; i < root.getChildren().length; i++) {
+			root.getChildren()[i] = new Node(i);
+			
+		}
 		
 	}
 }
@@ -149,7 +177,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		// (why this has to be opposite to linear algebra beats me)
 		this.gameBoard = new int[x][y]; // initialized with zeros by default
 
-		this.mm = new MiniMaxTree(gameBoard);
+		this.mm = new MiniMaxTree(gameBoard, playerID);
 
 	}
 
@@ -171,16 +199,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		if (winner == 0) {
 			return Winner.TIE;
 		}
-		if (winner == 1) {
-			return Winner.PLAYER1;
-		}
-		if (winner == 2) {
-			return Winner.PLAYER2;
-		}
 		winner = checkHorizontally(gameBoard);
-		if (winner == 0) {
-			return Winner.TIE;
-		}
 		if (winner == 1) {
 			return Winner.PLAYER1;
 		}
@@ -188,9 +207,6 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 			return Winner.PLAYER2;
 		}
 		winner = checkDiagonally(gameBoard);
-		if (winner == 0) {
-			return Winner.TIE;
-		}
 		if (winner == 1) {
 			return Winner.PLAYER1;
 		}
@@ -199,9 +215,6 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		}
 		winner = checkBoardFull(gameBoard);
 
-		if (winner == 0) {
-			return Winner.TIE;
-		}
 		if (winner == 1) {
 			return Winner.PLAYER1;
 		}
@@ -243,12 +256,13 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 					sum = 0;
 				}
 				previousValue = fieldValue;
-				sum += fieldValue;
+				if (fieldValue == 1) sum += 1;
+				else if (fieldValue == 2) sum -= 1;
 				if (sum == 4) {
 					return 1;
 				} // sum == 4 since player1 tokens has a value of 1 and it takes
 					// 4 to win.
-				if (sum == 8) {
+				if (sum == -4) {
 					return 2;
 				} // sum == 8 since player2 tokens has a value of 2 and it takes
 					// 4 to win.
@@ -265,20 +279,19 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		for (int r = 0; r < rows; r++) {
 			sum = 0;
 			int previousValue = 0;
-			System.out.println("sum:" + sum);
 			for (int c = 0; c < columns; c++) {
 				int fieldValue = gameBoard[c][r];
 				if (fieldValue != previousValue) {
 					sum = 0;
 				}
 				previousValue = fieldValue;
-				sum += fieldValue;
-				System.out.print(fieldValue);
+				if (fieldValue == 1) sum += 1;
+				else if (fieldValue == 2) sum -= 1;
 				if (sum == 4) {
 					return 1;
 				} // sum == 4 since player1 tokens has a value of 1 and it takes
 					// 4 to win.
-				if (sum == 8) {
+				if (sum == -4) {
 					return 2;
 				} // sum == 8 since player2 tokens has a value of 2 and it takes
 					// 4 to win.
@@ -305,12 +318,13 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 						sum = 0;
 					}
 					previousValue = fieldValue;
-					sum += fieldValue;
+					if (fieldValue == 1) sum += 1;
+					else if (fieldValue == 2) sum -= 1;
 					if (sum == 4) {
 						return 1;
 					} // sum == 4 since player1 tokens has a value of 1 and it
 						// takes 4 to win.
-					if (sum == 8) {
+					if (sum == -4) {
 						return 2;
 					} // sum == 8 since player2 tokens has a value of 2 and it
 						// takes 4 to win.
@@ -345,8 +359,8 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		while (gameBoard[column][r] != 0)
 			r--;
 		gameBoard[column][r] = playerID;
-		
-		mm.root = mm.root.getNodes()[column];
+		mm.expandTree();
+		mm.root = mm.root.getChildren()[column];
 		
 	}
 
@@ -356,10 +370,8 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 	 */
 	public int decideNextMove() {
 		mm.expandTree();
-		 Random ra = new Random();
-		 int x = ra.nextInt(7);
-		 return 0;
-		//return mm.MiniMax(gameBoard);
+		 //return 0;
+		return mm.miniMax();
 		 
 	}
 
