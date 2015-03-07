@@ -26,6 +26,78 @@ class MiniMaxTree {
         root.createChildren();
     }
 
+    class Node {
+
+        private int rootPlayerID;
+        int depth;
+        int[][] gameBoard;
+        Node[] children;
+
+        public Node(int[][] gameBoard, int depth, int rootPlayerID) {
+            this.gameBoard = gameBoard;
+            this.depth = depth;
+            this.rootPlayerID = rootPlayerID;
+
+        }
+
+        public void updateState(int column, int playerID){
+            int r = gameBoard[column].length - 1; // number of rows
+            SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
+            System.out.println();
+
+            while (gameBoard[column][r] != 0 && r > 0)
+                r--;
+            if (!full(gameBoard)) {
+                gameBoard[column][r] = playerID;
+            }
+
+        }
+
+        public void createChildren(){
+            int nColumns = gameBoard.length;
+            int nRows = gameBoard[0].length;
+            int depth = this.depth;
+            if (depth < maxDepth) {
+                if (this.children == null){
+                    this.children = new Node[nColumns];
+
+                    //Create children
+                    for (int i = 0; i < nColumns; i++) {
+                        //Carry over parent gameBoard state (remember to make new object)
+                        int[][] newGameBoard = new int[nColumns][nRows];
+                        for (int c = 0; c < nColumns; c++) {
+                            newGameBoard[c] = Arrays.copyOf(gameBoard[c],nColumns);
+                        }
+
+                        // Find ID of player in next round (opposite of current)
+                        int nextPlayerID = 0;
+                        switch (rootPlayerID){
+                            case 1: nextPlayerID = 2;
+                                break;
+                            case 2: nextPlayerID = 1;
+                                break;
+                        }
+
+                        // Make child  and update its state
+                        Node child = new Node(newGameBoard, depth + 1, nextPlayerID);
+                        child.updateState(i, nextPlayerID);
+                        this.children[i] = child;
+                        this.children[i].createChildren();
+                    }
+                }
+            }
+        }
+
+        public Node[] getChildren() {
+            return children;
+        }
+
+        public void setChildren(Node[] children) {
+            this.children = children;
+        }
+
+    }
+
     public Node buildTree(int[][] gameBoard, int rootPlayerID){
         Node newRoot = new Node(gameBoard,0, rootPlayerID);
         newRoot.createChildren();
@@ -107,79 +179,7 @@ class MiniMaxTree {
 		return true;
 	}
 
-    class Node {
-
-        private int rootPlayerID;
-        int depth;
-        int[][] gameBoard;
-        Node[] children;
-
-        public Node(int[][] gameBoard, int depth, int rootPlayerID) {
-            this.gameBoard = gameBoard;
-            this.depth = depth;
-            this.rootPlayerID = rootPlayerID;
-
-        }
-
-        public void updateState(int column, int playerID){
-            int r = gameBoard[column].length - 1; // number of rows
-            SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
-            System.out.println();
-
-            while (gameBoard[column][r] != 0 && r > 0)
-                r--;
-            if (!full(gameBoard)) {
-                gameBoard[column][r] = playerID;
-            }
-
-        }
-
-        public void createChildren(){
-            int nColumns = gameBoard.length;
-            int nRows = gameBoard[0].length;
-            int depth = this.depth;
-            if (depth < maxDepth) {
-                if (this.children == null){
-                    this.children = new Node[nColumns];
-
-                    //Create children
-                    for (int i = 0; i < nColumns; i++) {
-                        //Carry over parent gameBoard state (remember to make new object)
-                        int[][] newGameBoard = new int[nColumns][nRows];
-                        for (int c = 0; c < nColumns; c++) {
-                            newGameBoard[c] = Arrays.copyOf(gameBoard[c],nColumns);
-                        }
-
-                        // Find ID of player in next round (opposite of current)
-                        int nextPlayerID = 0;
-                        switch (rootPlayerID){
-                            case 1: nextPlayerID = 2;
-                                break;
-                            case 2: nextPlayerID = 1;
-                                break;
-                        }
-
-                        // Make child  and update its state
-                        Node child = new Node(newGameBoard, depth + 1, nextPlayerID);
-                        child.updateState(i, nextPlayerID);
-                        this.children[i] = child;
-                        this.children[i].createChildren();
-                    }
-                }
-            }
-        }
-
-        public Node[] getChildren() {
-            return children;
-        }
-
-        public void setChildren(Node[] children) {
-            this.children = children;
-        }
-
-    }
-
-	public int gameWon(Node node, int column, int currentPlayer) {
+    public int gameWon(Node node, int column, int currentPlayer) {
 		Winner win = winner(node, column, currentPlayer);
 		if (win != Winner.NOT_FINISHED) {
 			if (win == Winner.TIE) {
