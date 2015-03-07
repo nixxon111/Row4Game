@@ -42,7 +42,7 @@ class MiniMaxTree {
 
         public void updateState(int column, int playerID){
             int r = gameBoard[column].length - 1; // number of rows
-            SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
+            //SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
             System.out.println();
 
             while (gameBoard[column][r] != 0 && r > 0)
@@ -66,7 +66,7 @@ class MiniMaxTree {
                         //Carry over parent gameBoard state (remember to make new object)
                         int[][] newGameBoard = new int[nColumns][nRows];
                         for (int c = 0; c < nColumns; c++) {
-                            newGameBoard[c] = Arrays.copyOf(gameBoard[c],nColumns);
+                            newGameBoard[c] = Arrays.copyOf(gameBoard[c],nRows);
                         }
 
                         // Find ID of player in next round (opposite of current)
@@ -81,6 +81,8 @@ class MiniMaxTree {
                         // Make child  and update its state
                         Node child = new Node(newGameBoard, depth + 1, nextPlayerID);
                         child.updateState(i, nextPlayerID);
+                        System.out.println("Depth " + depth + "column " +i);
+                        SuperDuperAwesomeGameLogic.printGameboard(child.gameBoard);
                         this.children[i] = child;
                         this.children[i].createChildren();
                     }
