@@ -1,7 +1,7 @@
 import java.util.Arrays;
 import java.util.Random;
 
-public enum Winner {
+enum Winner {
     PLAYER1,
     PLAYER2,
     TIE,
@@ -24,15 +24,6 @@ class MiniMaxTree {
 
     private void initializeTree(){
         root.createChildren();
-    }
-
-    private static void updateChildren(Node node, int column, int playerID){
-        if (node.depth < maxDepth) {
-            for (Node child : node.children) {
-                updateChildren(child, column, playerID);
-            }
-        }
-        node.updateState(column,playerID);
     }
 
     public Node buildTree(int[][] gameBoard, int rootPlayerID){
@@ -105,8 +96,8 @@ class MiniMaxTree {
 
     /**
      * Checks if the board is full by looking at the top row
-     * @param gb
-     * @return
+     * @param gb gameboard
+     * @return true or false
      */
 	private boolean full(int[][] gb) {
 		for (int i = 0; i < gb[0].length; i++) {
@@ -115,13 +106,6 @@ class MiniMaxTree {
 		}
 		return true;
 	}
-
-    public void expandTree(int column){
-        root = root.children[column];
-        root.decreaseDepthByOne();
-        root.expandTree();
-    }
-
 
     class Node {
 
@@ -157,32 +141,6 @@ class MiniMaxTree {
 
         }
 
-//        public void createChildren(){
-//            int nColumns = gameBoard.length;
-//            int nRows = gameBoard[0].length;
-//            int depth = this.depth;
-//            if (depth < maxDepth) {
-//                if (this.children == null){
-//                    this.children = new Node[nColumns];
-//
-//                    //Create children
-//                    for (int i = 0; i < nColumns; i++) {
-//                        //Carry over parent gameBoard state (remember to make new object)
-//                        int[][] newGameBoard = new int[nColumns][nRows];
-//                        for (int c = 0; c < nColumns; c++) {
-//                            newGameBoard[c] = Arrays.copyOf(gameBoard[c],nColumns);
-//                        }
-//
-//                        // Make child  and update its state
-//                        Node child = new Node(newGameBoard, depth + 1);
-//                        child.updateState(i,playerID);
-//                        this.children[i] = child;
-//                        this.children[i].createChildren();
-//                    }
-//                }
-//            }
-//        }
-
         public void createChildren(){
             int nColumns = gameBoard.length;
             int nRows = gameBoard[0].length;
@@ -216,50 +174,6 @@ class MiniMaxTree {
                     }
                 }
             }
-        }
-
-        public void decreaseDepthByOne(){
-            int oldDepth = this.depth;
-            if (oldDepth <= maxDepth) {
-                int newDepth = this.depth - 1;
-                if (oldDepth < maxDepth) { // because when depth=maxDepth there are no children
-                    for (Node child : children) {
-                        child.decreaseDepthByOne();
-                    }
-                }
-                this.depth = newDepth;
-            }
-        }
-
-        public void expandTree(){
-            int nColumns = gameBoard.length;
-            int nRows = gameBoard[0].length;
-            int depth = this.depth;
-            if (children != null) {
-                for (Node child : children) {
-                    child.expandTree();
-                }
-            } else {
-
-                this.children = new Node[nColumns];
-
-                //Create children
-                for (int i = 0; i < nColumns; i++) {
-                    //Carry over parent gameBoard state (remember to make new object)
-                    int[][] newGameBoard = new int[nColumns][nRows];
-                    for (int c = 0; c < nColumns; c++) {
-                        newGameBoard[c] = Arrays.copyOf(gameBoard[c],nColumns);
-                    }
-
-                    // Make child  and update its state
-                    Node child = new Node(newGameBoard, depth + 1);
-                    child.updateState(i,playerID);
-                    this.children[i] = child;
-                }
-
-
-            }
-
         }
 
         public Node[] getChildren() {
@@ -444,17 +358,6 @@ class MiniMaxTree {
 			return Winner.PLAYER2;
 	}
 
-	public void expandTree(int[][] gb, int playerID) {
-		// GOGOGO CHRISTIAN!
-		if (root.getChildren() == null) {
-			root.setChildren(new Node[7]);
-		}
-		for (int i = 0; i < root.getChildren().length; i++) {
-			root.getChildren()[i] = new Node(gb, i, playerID);
-
-		}
-
-	}
 
 	public int heuristic(int[][] gameBoard) {
 
