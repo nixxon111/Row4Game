@@ -278,10 +278,10 @@ class MiniMaxTree {
 		if (row - 1 >= 0 && column - 1 >= 0) {
 			if (gb[column - 1][row - 1] == currentPlayer) {
 				succes += 1;
-				if (row - 2 >= 0 && column - 1 >= 0) {
+				if (row - 2 >= 0 && column - 2 >= 0) {
 					if (gb[column - 2][row - 2] == currentPlayer) {
 						succes += 1;
-						if (row - 3 >= 0 && column - 1 >= 0) {
+						if (row - 3 >= 0 && column - 3 >= 0) {
 							if (gb[column - 3][row - 3] == currentPlayer) {
 								succes += 1;
 							}

@@ -29,10 +29,7 @@ public class ShowGame
      */
     public static void main(String[] args)
     {
-    	int[][] m = { {0,0,0,0,0,0 },{0,0,0,0,0,0 },{0,0,0,0,0,0 }, {0,0,2,1,0,0 }, {2,1,2,1,0,0 },{2,1,1,1,0,0 },{1,2,2,2,0,0 } };
-    	MiniMaxTree e = new MiniMaxTree(m, 1);
-    	System.out.println(e.heuristic(e.root.gameBoard));
-    	SuperDuperAwesomeGameLogic.printGameboard(e.root.gameBoard);
+    	
         IGameLogic player1 = null;
         IGameLogic player2 = null;
         int cols = 7;
@@ -128,7 +125,7 @@ public class ShowGame
             throws ClassNotFoundException, NoSuchMethodException, 
                    InstantiationException, IllegalAccessException,
                    InvocationTargetException {
-        IGameLogic retGL = null;
+    	IGameLogic retGL = null;
         if(!cmdParam.equalsIgnoreCase(HUMAN_CMD)) {
             retGL = (IGameLogic)Class.forName(cmdParam).getConstructor().newInstance();
         }
