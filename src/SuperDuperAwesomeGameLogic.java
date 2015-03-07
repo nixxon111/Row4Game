@@ -114,13 +114,6 @@ class MiniMaxTree {
         int[][] gameBoard;
         Node[] children;
 
-
-        public Node(int[][] gameBoard, int depth) {
-            this.gameBoard = gameBoard;
-            this.depth = depth;
-
-        }
-
         public Node(int[][] gameBoard, int depth, int rootPlayerID) {
             this.gameBoard = gameBoard;
             this.depth = depth;
