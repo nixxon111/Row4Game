@@ -81,13 +81,15 @@ class MiniMaxTree {
                         // Make child  and update its state
                         Node child = new Node(newGameBoard, depth + 1, nextPlayerID);
                         child.updateState(i, nextPlayerID);
-                        System.out.println("Depth " + depth + "column " +i);
-                        SuperDuperAwesomeGameLogic.printGameboard(child.gameBoard);
                         this.children[i] = child;
                         this.children[i].createChildren();
                     }
                 }
             }
+            // print game board for diagnostics
+            System.out.println();
+            System.out.println("Depth " + depth + "\n");
+            SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
         }
 
         public Node[] getChildren() {
@@ -528,9 +530,26 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 	private MiniMaxTree mm;
 
 	static public void printGameboard(int[][] gb) {
-		for (int i = 0; i < gb[0].length; i++) {
-			for (int j = 0; j < gb.length; j++) {
-				System.out.print(gb[j][i]);
+		for (int i = 0; i < gb[0].length; i++) { // iterate over rows
+            if (i==0) { // print out column heading
+                for (int l = 0; l < gb.length+2; l++) {
+                    if (l>1){
+                        System.out.print(l - 1);
+                    } else {
+                        System.out.print(" ");
+                    }
+                }
+                System.out.println();
+                for (int k = 0; k < gb.length+2; k++) { // print out row heading
+                    System.out.print("-");
+                }
+                System.out.println();
+            }
+
+            // print the actual content of the game board
+            for (int j = 0; j < gb.length; j++) {
+                if (j==0) { System.out.print(i+1); System.out.print("|"); }
+                System.out.print(gb[j][i]);
 			}
 			System.out.println();
 		}
