@@ -198,10 +198,6 @@ class MiniMaxTree {
 		return MiniMaxTree.GAME_NOT_WON;
 	}
 
-	// inplement tie == full
-	// Winner???
-	// current player = give it at mini and max, they know
-
 	private Winner winner(Node node, int column, int currentPlayer) {
 		int[][] gameboard = node.gameBoard;
 		int row = -17; // if not changed = error
@@ -559,9 +555,6 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		// We initialize the instantiated object using the initializeGame method
 	}
 
-	// Random r = new Random();
-	// return r.nextInt(20) - 10;
-
 	/**
 	 * Creates a new empty game board of the specified dimensions and indicates
 	 * the ID of the player. This method will be called from the main function.
@@ -649,9 +642,6 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		gameBoard[column][r] = playerID;
         mm.root = mm.buildTree(gameBoard,playerID);
 
-		//mm.expandTree(column);
-		//mm.root = mm.root.getChildren()[column];
-		
 	}
 
 
