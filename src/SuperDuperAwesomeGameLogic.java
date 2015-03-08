@@ -2,15 +2,12 @@ import java.util.Arrays;
 import java.util.Random;
 
 enum Winner {
-    PLAYER1,
-    PLAYER2,
-    TIE,
-    NOT_FINISHED
+	PLAYER1, PLAYER2, TIE, NOT_FINISHED
 }
 
 class MiniMaxTree {
-    public static final int GAME_NOT_WON = -1337;
-    static final int maxDepth = 3;
+	public static final int GAME_NOT_WON = -1337;
+	static final int maxDepth = 3;
 	static int count = 300;
 
 	Node root;
@@ -19,100 +16,106 @@ class MiniMaxTree {
 	public MiniMaxTree(int[][] gameboard, int playerID) {
 		root = new Node(gameboard, 0, playerID);
 		this.playerID = playerID;
-        initializeTree();
+		initializeTree();
 	}
 
-    private void initializeTree(){
-        root.createChildren();
-    }
+	private void initializeTree() {
+		root.createChildren();
+	}
 
-    class Node {
+	class Node {
 
-        private int rootPlayerID;
-        int depth;
-        int[][] gameBoard;
-        Node[] children;
+		private int rootPlayerID;
+		int depth;
+		int[][] gameBoard;
+		Node[] children;
 
-        public Node(int[][] gameBoard, int depth, int rootPlayerID) {
-            this.gameBoard = gameBoard;
-            this.depth = depth;
-            this.rootPlayerID = rootPlayerID;
+		public Node(int[][] gameBoard, int depth, int rootPlayerID) {
+			this.gameBoard = gameBoard;
+			this.depth = depth;
+			this.rootPlayerID = rootPlayerID;
 
-        }
+		}
 
-        public void updateState(int column, int playerID){
-            int r = gameBoard[column].length - 1; // number of rows
-            //SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
-            System.out.println();
+		public void updateState(int column, int playerID) {
+			int r = gameBoard[column].length - 1; // number of rows
+			// SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
+			// System.out.println();
 
-            while (gameBoard[column][r] != 0 && r > 0)
-                r--;
-            if (!full(gameBoard)) {
-                gameBoard[column][r] = playerID;
-            }
+			while (gameBoard[column][r] != 0 && r > 0)
+				r--;
+			// columnFull(this, column) returnerer om kolonne "column" i
+			// gameboard for this node er fyldt
+			if (!full(gameBoard)) {
+				gameBoard[column][r] = playerID;
+			}
 
-        }
+		}
 
-        public void createChildren(){
-            int nColumns = gameBoard.length;
-            int nRows = gameBoard[0].length;
-            int depth = this.depth;
-            if (depth < maxDepth) {
-                if (this.children == null){
-                    this.children = new Node[nColumns];
+		public void createChildren() {
+			int nColumns = gameBoard.length;
+			int nRows = gameBoard[0].length;
+			int depth = this.depth;
+			if (depth < maxDepth) {
+				if (this.children == null) {
+					this.children = new Node[nColumns];
 
-                    //Create children
-                    for (int i = 0; i < nColumns; i++) {
-                        //Carry over parent gameBoard state (remember to make new object)
-                        int[][] newGameBoard = new int[nColumns][nRows];
-                        for (int c = 0; c < nColumns; c++) {
-                            newGameBoard[c] = Arrays.copyOf(gameBoard[c],nRows);
-                        }
+					// Create children
+					for (int i = 0; i < nColumns; i++) {
+						// Carry over parent gameBoard state (remember to make
+						// new object)
+						int[][] newGameBoard = new int[nColumns][nRows];
+						for (int c = 0; c < nColumns; c++) {
+							newGameBoard[c] = Arrays
+									.copyOf(gameBoard[c], nRows);
+						}
 
-                        // Find ID of player in next round (opposite of current)
-                        int nextPlayerID = 0;
-                        switch (rootPlayerID){
-                            case 1: nextPlayerID = 2;
-                                break;
-                            case 2: nextPlayerID = 1;
-                                break;
-                        }
+						// Find ID of player in next round (opposite of current)
+						int nextPlayerID = 0;
+						switch (rootPlayerID) {
+						case 1:
+							nextPlayerID = 2;
+							break;
+						case 2:
+							nextPlayerID = 1;
+							break;
+						}
 
-                        // Make child  and update its state
-                        Node child = new Node(newGameBoard, depth + 1, nextPlayerID);
-                        child.updateState(i, nextPlayerID);
-                        this.children[i] = child;
-                        this.children[i].createChildren();
-                    }
-                }
-            }
-            // print game board for diagnostics
-            System.out.println();
-            System.out.println("Depth " + depth + "\n");
-            SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
-        }
+						// Make child and update its state
+						Node child = new Node(newGameBoard, depth + 1,
+								nextPlayerID);
+						child.updateState(i, nextPlayerID);
+						this.children[i] = child;
+						this.children[i].createChildren();
+					}
+				}
+			}
+			// print game board for diagnostics
+			// System.out.println();
+			// System.out.println("Depth " + depth + "\n");
+			// SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
+		}
 
-        public Node[] getChildren() {
-            return children;
-        }
+		public Node[] getChildren() {
+			return children;
+		}
 
-        public void setChildren(Node[] children) {
-            this.children = children;
-        }
+		public void setChildren(Node[] children) {
+			this.children = children;
+		}
 
-    }
+	}
 
-    public Node buildTree(int[][] gameBoard, int rootPlayerID){
-        Node newRoot = new Node(gameBoard,0, rootPlayerID);
-        newRoot.createChildren();
-        return newRoot;
-    }
-
+	public Node buildTree(int[][] gameBoard, int rootPlayerID) {
+		Node newRoot = new Node(gameBoard, 0, rootPlayerID);
+		newRoot.createChildren();
+		return newRoot;
+	}
 
 	public int miniMax() {
 		int low = Integer.MAX_VALUE;
 		int high = -Integer.MAX_VALUE;
-		int result;
+		int result = -1337;
 		int choice = -1;
 		if (playerID == 1) {
 			for (int i = 0; i < root.getChildren().length; i++) {
@@ -132,6 +135,7 @@ class MiniMaxTree {
 				}
 			}
 		}
+		System.out.println("result:" + result);
 		return choice;
 	}
 
@@ -169,12 +173,13 @@ class MiniMaxTree {
 		return highest;
 	}
 
-
-    /**
-     * Checks if the board is full by looking at the top row
-     * @param gb gameboard
-     * @return true or false
-     */
+	/**
+	 * Checks if the board is full by looking at the top row
+	 * 
+	 * @param gb
+	 *            gameboard
+	 * @return true or false
+	 */
 	private boolean full(int[][] gb) {
 		for (int i = 0; i < gb.length; i++) {
 			if (gb[i][0] == 0)
@@ -183,26 +188,36 @@ class MiniMaxTree {
 		return true;
 	}
 
-    public int gameWon(Node node, int column, int currentPlayer) {
+	public int gameWon(Node node, int column, int currentPlayer) {
+
 		Winner win = winner(node, column, currentPlayer);
 		if (win != Winner.NOT_FINISHED) {
+			System.out.println(win);
 			if (win == Winner.TIE) {
 				return 0;
 			} else {
 				if (win == Winner.PLAYER1) {
-					return 200;
+					return 1000;
 				} else
-					return -200;
+					return -1000;
 			}
 		}
 		return MiniMaxTree.GAME_NOT_WON;
 	}
 
+	private boolean columnFull(Node node, int column) {
+		if (node.gameBoard[column][0] != 0) {
+			return true;
+		}
+		return false;
+	}
+
 	private Winner winner(Node node, int column, int currentPlayer) {
 		int[][] gameboard = node.gameBoard;
+
 		if (full(gameboard))
 			return Winner.TIE;
-		
+
 		int row = -17; // if not changed = error
 		for (int i = 0; i < gameboard[column].length; i++) {
 			if (gameboard[column][i] != 0) {
@@ -210,7 +225,7 @@ class MiniMaxTree {
 				break;
 			}
 		}
-		
+
 		Winner winner = horizontalWinner(row, column, gameboard, currentPlayer);
 		if (winner != Winner.NOT_FINISHED)
 			return winner;
@@ -313,6 +328,7 @@ class MiniMaxTree {
 
 	private Winner horizontalWinner(int row, int column, int[][] gb,
 			int currentPlayer) {
+
 		int sum = 0;
 		int previousValue = 0;
 		for (int c = 0; c < gb.length; c++) {
@@ -353,24 +369,25 @@ class MiniMaxTree {
 			return Winner.PLAYER2;
 	}
 
-
 	public int heuristic(int[][] gameBoard) {
 
 		int valueV = valueVertically(gameBoard);
 		int valueH = valueHorizontally(gameBoard);
 		int valueD = valueDigonally(gameBoard);
 
-		return new Random().nextInt(50);//valueV;// + valueH + valueD;
+		return valueV + valueH + valueD; // new Random().nextInt(50);//valueV;//
+											// + valueH + valueD;
 	}
 
 	private int valueVertically(int[][] gameBoard) {
-		int sum;
+		int sum = 0;
 		int columns = gameBoard.length;
 		int rows = gameBoard[0].length - 1; // -1 since we want the array
 											// indices from 0 to 5
-		sum = 0;
+
 		for (int c = 0; c < columns; c++) {
-			// sum = 0;
+			int cValue = 0;
+			int success = 0; //
 			int previousValue = 1000;
 			int value = 1000;
 			for (int r = rows; r >= 0; r--) {
@@ -380,28 +397,28 @@ class MiniMaxTree {
 				}
 				if (fieldValue == 1) {
 					value = 1;
-				}
-				else if (fieldValue == 2) {
+				} else if (fieldValue == 2) {
 					value = -1;
 				}
-				sum = +value;
+				cValue += value;
 				if (previousValue != value) {
-					sum = value;
 					if (r < 3) {
-						sum = 0;
+						cValue = 0;
 						break;
 					}
+					cValue = value;
 				}
 				previousValue = fieldValue;
 
 			}
-			if (playerID == 1 && sum == -3) {
-				return -100;
+			// Not sure if necessary
+			if (playerID == 1 && cValue == -3) {
+				return -500;
 			}
-			if (playerID == 2 && sum == 3) {
-				return 100;
+			if (playerID == 2 && cValue == 3) {
+				return 500;
 			}
-			sum = +sum;
+			sum += cValue;
 		}
 		return sum;
 	}
@@ -411,10 +428,10 @@ class MiniMaxTree {
 		int sum = 0;
 		int columns = gameBoard.length;
 		int rows = gameBoard[0].length;
-		for (int r = rows - 1; r >= 0; r--) { // want to start from array index
-												// 0
-			int value = 1000;
+		for (int r = rows - 1; r >= 0; r--) { // want to start from array index0
+			int rValue = 0;
 			for (int c = 3; c < columns; c++) {
+				int fValue = 0;
 				int goodFor = -15;
 				boolean first = true;
 				for (int f = c - 3; f <= c; f++) { // check 4 continuous array
@@ -429,18 +446,25 @@ class MiniMaxTree {
 						first = false;
 					} else {
 						if (goodFor != fieldValue) {
+							fValue = 0;
 							break;
 						}
-						if (fieldValue == 1) {
-							value += fieldValue;
-						} else if (fieldValue == 2) {
-							value += -1;
-						}
 					}
-					sum += value;
+					if (fieldValue == 1) {
+						fValue += fieldValue;
+					} else if (fieldValue == 2) {
+						fValue += -1;
+					}
 				}
-				sum += sum;
+				if (Math.abs(fValue) == 2) {
+					fValue *= 2;
+				} else if (Math.abs(fValue) == 3) {
+					fValue *= 3;
+				}
+				rValue += fValue;
 			}
+
+			sum += rValue;
 		}
 		return sum;
 	}
@@ -451,9 +475,11 @@ class MiniMaxTree {
 		int rows = gameBoard[0].length;
 
 		for (int r = 0; r < rows - 3; r++) {
-			int value = 1000;
+			int value = 0;
+			int rValue = 0;
 			for (int c = 0; c < columns - 3; c++) {
 				int goodFor = -15;
+				int fValue = 0;
 				boolean first = true;
 				for (int i = 0; i < 4; i++) {
 					int fieldValue = gameBoard[c + i][r + i]; // add i to both
@@ -467,24 +493,34 @@ class MiniMaxTree {
 						first = false;
 					} else {
 						if (goodFor != fieldValue) {
+							fValue = 0;
 							break;
 						}
-						if (fieldValue == 1) {
-							value += fieldValue;
-						} else if (fieldValue == 2) {
-							value += -1;
-						}
+
 					}
-					sum += value;
+					if (fieldValue == 1) {
+						value = 1;
+					} else if (fieldValue == 2) {
+						value = -1;
+					}
+					fValue += value;
 				}
-				sum += sum;
+				if (Math.abs(fValue) == 2) {
+					fValue *= 2;
+				} else if (Math.abs(fValue) == 3) {
+					fValue *= 3;
+				}
+				rValue += fValue;
 			}
+			sum += rValue;
 		}
 
 		for (int r = 0; r < rows - 3; r++) {
-			int value = 1000;
+			int value = 0;
+			int rValue = 0;
 			for (int c = 6; c >= columns - 4; c--) {
 				int goodFor = -15;
+				int fValue = 0;
 				boolean first = true;
 				for (int i = 0; i < 4; i++) {
 					int fieldValue = gameBoard[c - i][r + i]; // add i to both
@@ -498,18 +534,26 @@ class MiniMaxTree {
 						first = false;
 					} else {
 						if (goodFor != fieldValue) {
+							fValue = 0;
 							break;
 						}
-						if (fieldValue == 1) {
-							value += fieldValue;
-						} else if (fieldValue == 2) {
-							value += -1;
-						}
+
 					}
-					sum += value;
+					if (fieldValue == 1) {
+						value = 1;
+					} else if (fieldValue == 2) {
+						value = -1;
+					}
+					fValue += value;
 				}
-				sum += sum;
+				if (Math.abs(fValue) == 2) {
+					fValue *= 2;
+				} else if (Math.abs(fValue) == 3) {
+					fValue *= 3;
+				}
+				rValue += fValue;
 			}
+			sum += rValue;
 		}
 
 		return sum;
@@ -529,25 +573,29 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 
 	static public void printGameboard(int[][] gb) {
 		for (int i = 0; i < gb[0].length; i++) { // iterate over rows
-            if (i==0) { // print out column heading
-                for (int l = 0; l < gb.length+2; l++) {
-                    if (l>1){
-                        System.out.print(l - 1);
-                    } else {
-                        System.out.print(" ");
-                    }
-                }
-                System.out.println();
-                for (int k = 0; k < gb.length+2; k++) { // print out row heading
-                    System.out.print("-");
-                }
-                System.out.println();
-            }
+			if (i == 0) { // print out column heading
+				for (int l = 0; l < gb.length + 2; l++) {
+					if (l > 1) {
+						System.out.print(l - 1);
+					} else {
+						System.out.print(" ");
+					}
+				}
+				System.out.println();
+				for (int k = 0; k < gb.length + 2; k++) { // print out row
+															// heading
+					System.out.print("-");
+				}
+				System.out.println();
+			}
 
-            // print the actual content of the game board
-            for (int j = 0; j < gb.length; j++) {
-                if (j==0) { System.out.print(i+1); System.out.print("|"); }
-                System.out.print(gb[j][i]);
+			// print the actual content of the game board
+			for (int j = 0; j < gb.length; j++) {
+				if (j == 0) {
+					System.out.print(i + 1);
+					System.out.print("|");
+				}
+				System.out.print(gb[j][i]);
 			}
 			System.out.println();
 		}
@@ -579,7 +627,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		this.gameBoard = new int[x][y]; // initialized with zeros by default
 
 		this.mm = new MiniMaxTree(gameBoard, playerID);
-		
+
 	}
 
 	/**
@@ -614,7 +662,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		 * return Winner.NOT_FINISHED;
 		 */
 	}
-	
+
 	private void changeWinner() {
 		int column = lastInsertedColumn;
 		int row = -1; // if not changed = error
@@ -624,7 +672,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 				break;
 			}
 		}
-		
+
 		if (horizontalWinner(row, column))
 			return;
 		if (verticalWinner(row, column))
@@ -781,7 +829,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		lastInsertedColumn = column;
 		System.out.println("first");
 		printGameboard(gameBoard);
-		
+
 		// Iterate through rows in column until we find empty spot and place
 		// coin (code sakset fra FourConnectGUI)
 		if (column == -1) {
@@ -794,13 +842,14 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		while (gameBoard[column][r] != 0)
 			r--;
 		gameBoard[column][r] = playerID;
-        mm.root = mm.buildTree(gameBoard,playerID);
-        System.out.println();
-        System.out.println("heuristic:" + new MiniMaxTree(gameBoard, playerID).heuristic(gameBoard));;
-        changeWinner();
-        
-	}
+		mm.root = mm.buildTree(gameBoard, playerID);
+		System.out.println();
+		System.out.println("heuristic:"
+				+ new MiniMaxTree(gameBoard, playerID).heuristic(gameBoard));
+		SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
+		changeWinner();
 
+	}
 
 	/**
 	 * Calculates the next move This is where you should implement/call your
