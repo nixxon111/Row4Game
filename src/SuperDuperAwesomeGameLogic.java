@@ -360,7 +360,7 @@ class MiniMaxTree {
 		int valueH = valueHorizontally(gameBoard);
 		int valueD = valueDigonally(gameBoard);
 
-		return valueV;// + valueH + valueD;
+		return new Random().nextInt(50);//valueV;// + valueH + valueD;
 	}
 
 	private int valueVertically(int[][] gameBoard) {
@@ -689,7 +689,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		if (row - 1 >= 0 && column - 1 >= 0) {
 			if (gameBoard[column - 1][row - 1] == currentPlayer) {
 				succes += 1;
-				if (row - 2 >= 0 && column - 1 >= 0) {
+				if (row - 2 >= 0 && column - 2 >= 0) {
 					if (gameBoard[column - 2][row - 2] == currentPlayer) {
 						succes += 1;
 						if (row - 3 >= 0 && column - 1 >= 0) {
