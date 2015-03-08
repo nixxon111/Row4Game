@@ -115,7 +115,7 @@ class MiniMaxTree {
 	public int miniMax() {
 		int low = Integer.MAX_VALUE;
 		int high = -Integer.MAX_VALUE;
-		int result = -1337;
+		int result;
 		int choice = -1;
 		if (playerID == 1) {
 			for (int i = 0; i < root.getChildren().length; i++) {
@@ -135,7 +135,6 @@ class MiniMaxTree {
 				}
 			}
 		}
-		System.out.println("result:" + result);
 		return choice;
 	}
 
@@ -218,6 +217,7 @@ class MiniMaxTree {
 		if (full(gameboard))
 			return Winner.TIE;
 
+		// find/set row equal to where it landed in column
 		int row = -17; // if not changed = error
 		for (int i = 0; i < gameboard[column].length; i++) {
 			if (gameboard[column][i] != 0) {
