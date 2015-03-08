@@ -176,8 +176,8 @@ class MiniMaxTree {
      * @return true or false
      */
 	private boolean full(int[][] gb) {
-		for (int i = 0; i < gb[0].length; i++) {
-			if (gb[0][i] == 0)
+		for (int i = 0; i < gb.length; i++) {
+			if (gb[i][0] == 0)
 				return false;
 		}
 		return true;
@@ -200,6 +200,9 @@ class MiniMaxTree {
 
 	private Winner winner(Node node, int column, int currentPlayer) {
 		int[][] gameboard = node.gameBoard;
+		if (full(gameboard))
+			return Winner.TIE;
+		
 		int row = -17; // if not changed = error
 		for (int i = 0; i < gameboard[column].length; i++) {
 			if (gameboard[column][i] != 0) {
@@ -207,8 +210,7 @@ class MiniMaxTree {
 				break;
 			}
 		}
-		if (full(gameboard))
-			return Winner.TIE;
+		
 		Winner winner = horizontalWinner(row, column, gameboard, currentPlayer);
 		if (winner != Winner.NOT_FINISHED)
 			return winner;
@@ -358,7 +360,7 @@ class MiniMaxTree {
 		int valueH = valueHorizontally(gameBoard);
 		int valueD = valueDigonally(gameBoard);
 
-		return valueV + valueH + valueD;
+		return valueV;// + valueH + valueD;
 	}
 
 	private int valueVertically(int[][] gameBoard) {
@@ -379,7 +381,7 @@ class MiniMaxTree {
 				if (fieldValue == 1) {
 					value = 1;
 				}
-				if (fieldValue == 2) {
+				else if (fieldValue == 2) {
 					value = -1;
 				}
 				sum = +value;
@@ -577,7 +579,7 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		this.gameBoard = new int[x][y]; // initialized with zeros by default
 
 		this.mm = new MiniMaxTree(gameBoard, playerID);
-
+		
 	}
 
 	/**
@@ -612,6 +614,158 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 		 * return Winner.NOT_FINISHED;
 		 */
 	}
+	
+	private void changeWinner() {
+		int column = lastInsertedColumn;
+		int row = -1; // if not changed = error
+		for (int i = 0; i < gameBoard[column].length; i++) {
+			if (this.gameBoard[column][i] != 0) {
+				row = i; // row = row where last token was dropped
+				break;
+			}
+		}
+		
+		if (horizontalWinner(row, column))
+			return;
+		if (verticalWinner(row, column))
+			return;
+		diagonalWinner(row, column);
+		/*
+		 * int goodforPlayer = -44; for (int f = 0; f < gameBoard.length; f++) {
+		 * if (gameBoard[f][0] == 0 ) continue; (goodforPlayer == 44) ?
+		 * goodforPlayer=gameBoard[f][0] : (goodforPlayer==gameBoard[f][0] ?
+		 * continue : break); }
+		 */
+
+	}
+
+	private void diagonalWinner(int row, int column) {
+		int east = gameBoard.length;
+		int north = gameBoard[column].length;
+
+		int succes = 1;
+		if (row - 1 >= 0 && column + 1 < east) {
+			if (gameBoard[column + 1][row - 1] == currentPlayer) {
+				succes += 1;
+				if (row - 2 >= 0 && column + 2 < east) {
+					if (gameBoard[column + 2][row - 2] == currentPlayer) {
+						succes += 1;
+						if (row - 3 >= 0 && column + 3 < east) {
+							if (gameBoard[column + 3][row - 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (row + 1 < north && column - 1 >= 0) {
+			if (gameBoard[column - 1][row + 1] == currentPlayer) {
+				succes += 1;
+				if (row + 2 < north && column - 2 >= 0) {
+					if (gameBoard[column - 2][row + 2] == currentPlayer) {
+						succes += 1;
+						if (row + 3 < north && column - 3 >= 0) {
+							if (gameBoard[column - 3][row + 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (succes >= 4) {
+			if (currentPlayer == 1) {
+				winner = Winner.PLAYER1;
+			} else {
+				winner = Winner.PLAYER2;
+			}
+			return;
+		}
+
+		succes = 1;
+
+		if (row - 1 >= 0 && column - 1 >= 0) {
+			if (gameBoard[column - 1][row - 1] == currentPlayer) {
+				succes += 1;
+				if (row - 2 >= 0 && column - 1 >= 0) {
+					if (gameBoard[column - 2][row - 2] == currentPlayer) {
+						succes += 1;
+						if (row - 3 >= 0 && column - 1 >= 0) {
+							if (gameBoard[column - 3][row - 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (row + 1 < north && column + 1 < north) {
+			if (gameBoard[column + 1][row + 1] == currentPlayer) {
+				succes += 1;
+				if (row + 2 < north && column + 2 < north) {
+					if (gameBoard[column + 2][row + 2] == currentPlayer) {
+						succes += 1;
+						if (row + 3 < north && column + 3 < north) {
+							if (gameBoard[column + 3][row + 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (succes >= 4) {
+			if (currentPlayer == 1) {
+				winner = Winner.PLAYER1;
+			} else {
+				winner = Winner.PLAYER2;
+			}
+		}
+	}
+
+	private boolean horizontalWinner(int row, int column) {
+		int sum = 0;
+		int previousValue = 0;
+		for (int c = 0; c < gameBoard.length; c++) {
+			int fieldValue = gameBoard[c][row];
+			if (fieldValue != previousValue) {
+				sum = 0;
+			}
+			previousValue = fieldValue;
+			if (fieldValue == 1)
+				sum += 1;
+			else if (fieldValue == 2)
+				sum -= 1;
+			if (sum == 4) {
+				winner = Winner.PLAYER1;
+				return true;
+			} else if (sum == -4) {
+				winner = Winner.PLAYER2;
+				return true;
+			}
+		}
+		return false;
+
+	}
+
+	private boolean verticalWinner(int row, int column) {
+		if (row > gameBoard[column].length - 4)
+			return false; // vertical win not possible
+
+		for (int i = row; i < gameBoard[column].length && i < 4 + row; i++) {
+			if (gameBoard[column][i] != currentPlayer) {
+				return false;
+			}
+		}
+		if (currentPlayer == 1)
+			winner = Winner.PLAYER1;
+		else
+			winner = Winner.PLAYER2;
+		return true;
+	}
 
 	/**
 	 * Notifies that a token/coin is put in the specified column of the game
@@ -641,7 +795,10 @@ public class SuperDuperAwesomeGameLogic implements IGameLogic {
 			r--;
 		gameBoard[column][r] = playerID;
         mm.root = mm.buildTree(gameBoard,playerID);
-
+        System.out.println();
+        System.out.println("heuristic:" + new MiniMaxTree(gameBoard, playerID).heuristic(gameBoard));;
+        changeWinner();
+        
 	}
 
 
