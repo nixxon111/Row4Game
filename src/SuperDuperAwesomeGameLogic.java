@@ -7,7 +7,7 @@ enum Winner {
 
 class MiniMaxTree {
 	public static final int GAME_NOT_WON = -1337;
-	static final int maxDepth = 3;
+	static final int maxDepth = 4;
 	static int count = 300;
 
 	Node root;
@@ -330,23 +330,18 @@ class MiniMaxTree {
 			int currentPlayer) {
 
 		int sum = 0;
-		int previousValue = 0;
 		for (int c = 0; c < gb.length; c++) {
 			int fieldValue = gb[c][row];
-			if (fieldValue != previousValue) {
+			if (fieldValue != currentPlayer) {
 				sum = 0;
 			}
-			previousValue = fieldValue;
-			if (fieldValue == 1)
+			if (fieldValue == currentPlayer)
 				sum += 1;
-			else if (fieldValue == 2)
-				sum -= 1;
 			if (sum == 4) {
-				return Winner.PLAYER1;
-
-			} else if (sum == -4) {
-				return Winner.PLAYER2;
-
+				if (currentPlayer == 1)
+					return Winner.PLAYER1;
+				else
+					return Winner.PLAYER2;
 			}
 		}
 		return Winner.NOT_FINISHED;
@@ -355,6 +350,7 @@ class MiniMaxTree {
 
 	private Winner verticalWinner(int row, int column, int[][] gb,
 			int currentPlayer) {
+
 		if (row > gb[column].length - 4)
 			return Winner.NOT_FINISHED; // vertical win not possible
 
@@ -406,7 +402,9 @@ class MiniMaxTree {
 						cValue = 0;
 						break;
 					}
+					
 					cValue = value;
+					
 				}
 				previousValue = fieldValue;
 
@@ -417,6 +415,11 @@ class MiniMaxTree {
 			}
 			if (playerID == 2 && cValue == 3) {
 				return 500;
+			}
+			if (Math.abs(cValue) == 2) {
+				cValue *= 2;
+			} else if (Math.abs(cValue) == 3) {
+				cValue *= 3;
 			}
 			sum += cValue;
 		}
