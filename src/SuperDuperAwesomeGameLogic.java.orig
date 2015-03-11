@@ -1,187 +1,873 @@
+import java.util.Arrays;
 import java.util.Random;
 
+enum Winner {
+	PLAYER1, PLAYER2, TIE, NOT_FINISHED
+}
 
-public class SuperDuperAwesomeGameLogic implements IGameLogic {
-    private int x = 0;
-    private int y = 0;
-    private int playerID;
+class MiniMaxTree {
+	public static final int GAME_NOT_WON = -1337;
 <<<<<<< HEAD
-    int count=0;
+	static final int maxDepth = 4;
 =======
+	static final int maxDepth = 5;
+>>>>>>> 2c2e9dde706ea02f2b2634e3b9d98e86bcf61eee
+	static int count = 300;
 
-    private int[][] gameBoard;
->>>>>>> a409396b0bad8d7f8121a0b2ac8b73c12cc795ea
-    
-    public SuperDuperAwesomeGameLogic() {
-    	  // We initialize the instantiated object using the initializeGame method
-    }
+	Node root;
+	int playerID;
+
+	public MiniMaxTree(int[][] gameboard, int playerID) {
+		root = new Node(gameboard, 0, playerID);
+		this.playerID = playerID;
+		initializeTree();
+	}
+
+	private void initializeTree() {
+		root.createChildren();
+	}
+
+	class Node {
+
+		private int rootPlayerID;
+		int depth;
+		int[][] gameBoard;
+		Node[] children;
+
+		public Node(int[][] gameBoard, int depth, int rootPlayerID) {
+			this.gameBoard = gameBoard;
+			this.depth = depth;
+			this.rootPlayerID = rootPlayerID;
+
+		}
+
+		public void updateState(int column, int playerID) {
+			int r = gameBoard[column].length - 1; // number of rows
+
+			while (gameBoard[column][r] != 0 && r > 0)
+				r--;
+
+			if (!full(gameBoard)) {
+				gameBoard[column][r] = playerID;
+			}
+
+		}
+
+		public void createChildren() {
+			int nColumns = gameBoard.length;
+			int nRows = gameBoard[0].length;
+			int depth = this.depth;
+			if (depth < maxDepth) {
+				if (this.children == null) {
+					this.children = new Node[nColumns];
+
+					// Create children
+					for (int i = 0; i < nColumns; i++) {
+						// Carry over parent gameBoard state (remember to make new object)
+						int[][] newGameBoard = new int[nColumns][nRows];
+						for (int c = 0; c < nColumns; c++) {
+							newGameBoard[c] = Arrays
+									.copyOf(gameBoard[c], nRows);
+						}
+
+						// Find ID of player in next round (opposite of current)
+						int nextPlayerID = 0;
+						switch (rootPlayerID) {
+						case 1:
+							nextPlayerID = 2;
+							break;
+						case 2:
+							nextPlayerID = 1;
+							break;
+						}
+
+						// Make child and update its state
+						Node child = new Node(newGameBoard, depth + 1,nextPlayerID);
+						if (newGameBoard[i][0] == 0) { // column is not full
+                            child.updateState(i, nextPlayerID);
+                            this.children[i] = child;
+                            this.children[i].createChildren();
+                        } else {
+                            this.children[i] = null;
+                        }
+					}
+				}
+			}
+
+		}
+
+		public Node[] getChildren() {
+			return children;
+		}
+
+		public void setChildren(Node[] children) {
+			this.children = children;
+		}
+
+	}
+
+	public Node buildTree(int[][] gameBoard, int rootPlayerID) {
+		Node newRoot = new Node(gameBoard, 0, rootPlayerID);
+		newRoot.createChildren();
+		return newRoot;
+	}
+
+	public int miniMax() {
+		int low = Integer.MAX_VALUE;
+		int high = -Integer.MAX_VALUE;
+		int result;
+		int choice = -1;
+		if (playerID == 1) {
+			for (int i = 0; i < root.getChildren().length; i++) {
+				result = mini(root.getChildren()[i], i);
+				if (result > high) {
+					high = result;
+					choice = i;
+				}
+			}
+
+		} else {
+			for (int i = 0; i < root.getChildren().length; i++) {
+                if (root.getChildren()[i] != null ) { // if null then no children (row is full) and we skip column
+                    result = max(root.getChildren()[i], i);
+                    if (result < low) {
+                        low = result;
+                        choice = i;
+                    }
+                }
+			}
+		}
+		return choice;
+	}
+
+	private int mini(Node node, int column) {
+		int value = this.gameWon(node, column, 1);
+		if (value != MiniMaxTree.GAME_NOT_WON)
+			return value;
+		if (node.getChildren() == null) { // terminal node
+			return heuristic(node.gameBoard);
+		}
+		int lowest = Integer.MAX_VALUE;
+		int heuristic;
+		for (int i = 0; i < node.getChildren().length; i++) {
+            if (node.getChildren()[i] != null ) {
+                heuristic = max(node.getChildren()[i], i);
+                if (heuristic < lowest) lowest = heuristic;
+            } else {
+                lowest = 1200;
+            }
+		}
+		return lowest;
+	}
+
+	private int max(Node node, int column) {
+		int value = this.gameWon(node, column, 2);
+		if (value != MiniMaxTree.GAME_NOT_WON)
+			return value;
+		if (node.getChildren() == null) {
+			return heuristic(node.gameBoard);
+		}
+		int highest = -Integer.MAX_VALUE;
+		int heuristic;
+		for (int i = 0; i < node.getChildren().length; i++) {
+            if (node.getChildren()[i] != null ) {
+                heuristic = mini(node.getChildren()[i], i);
+			    if (heuristic > highest) highest = heuristic;
+		        } else {
+                    highest = -1200;
+            }
+        }
+		return highest;
+	}
 
 	/**
-     * Creates a new empty game board of the specified dimensions
-     * and indicates the ID of the player. 
-     * This method will be called from the main function. 
-     * @param columns The number of columns in the game board
-     * @param rows The number of rows in the game board
-     * @param playerID 1 = blue (player1), 2 = red (player2)
-     */
-    public void initializeGame(int x, int y, int playerID) {
-        this.x = x;
-        this.y = y;
-        this.playerID = playerID;
+	 * Checks if the board is full by looking at the top row
+	 * 
+	 * @param gb
+	 *            gameboard
+	 * @return true or false
+	 */
+	private boolean full(int[][] gb) {
+		for (int i = 0; i < gb.length; i++) {
+			if (gb[i][0] == 0)
+				return false;
+		}
+		return true;
+	}
 
-        // Create game board in the correct dimensions where x = columns and y = rows
-        // (why this has to be opposite to linear algebra beats me)
-        this.gameBoard = new int[x][y]; // initialized with zeros by default
+	public int gameWon(Node node, int column, int currentPlayer) {
 
-    }
+		Winner win = winner(node, column, currentPlayer);
+		if (win != Winner.NOT_FINISHED) {
+			System.out.println(win);
+			if (win == Winner.TIE) {
+				return 0;
+			} else {
+				if (win == Winner.PLAYER1) {
+					return 1000;
+				} else
+					return -1000;
+			}
+		}
+		return MiniMaxTree.GAME_NOT_WON;
+	}
 
-    /**
-     * Checks if the game is finished or not.
-     * @return the winner of the game
-     */
-    public Winner gameFinished() {
-<<<<<<< HEAD
-    	if (count++>=20) {
-    		return Winner.PLAYER1;
-    	}
-=======
-        /*
-        We use the following codes for game status:
-         NOT_FINISHED = -1
-         TIE = 0
-         PLAYER1 WIN = 1
-         PLAYER2 WIN = 2
-         */
+	private Winner winner(Node node, int column, int currentPlayer) {
+		int[][] gameboard = node.gameBoard;
 
-        int winner = -1; // initialized with -1 so that we skip the if-statements and return NOT_FINISHED
+		if (full(gameboard))
+			return Winner.TIE;
 
-        winner = checkVertically(gameBoard);
-        winner = checkHorizontally(gameBoard);
-        winner = checkDiagonally(gameBoard);
-        winner = checkBoardFull(gameBoard);
+		// find/set row equal to where it landed in column
+		int row = -17; // if not changed = error
+		for (int i = 0; i < gameboard[column].length; i++) {
+			if (gameboard[column][i] != 0) {
+				row = i; // row = row where last token was dropped
+				break;
+			}
+		}
 
-        if (winner == 0) {return Winner.TIE;}
-        if (winner == 1) {return Winner.PLAYER1;}
-        if (winner == 2) {return Winner.PLAYER2;}
+		Winner winner = horizontalWinner(row, gameboard);
+		if (winner != Winner.NOT_FINISHED)
+			return winner;
+		winner = verticalWinner(row, column, gameboard, currentPlayer);
+		if (winner != Winner.NOT_FINISHED)
+			return winner;
+		winner = diagonalWinner(row, column, gameboard, currentPlayer);
+		if (winner != Winner.NOT_FINISHED)
+			return winner;
+		return Winner.NOT_FINISHED;
+	}
 
->>>>>>> a409396b0bad8d7f8121a0b2ac8b73c12cc795ea
-        return Winner.NOT_FINISHED;
-    }
+	private Winner diagonalWinner(int row, int column, int[][] gb,
+			int currentPlayer) {
+		int east = gb.length;
+		int north = gb[column].length;
 
-    private int checkBoardFull(int[][] gameBoard) {
+		int succes = 1;
+		if (row - 1 >= 0 && column + 1 < east) {
+			if (gb[column + 1][row - 1] == currentPlayer) {
+				succes += 1;
+				if (row - 2 >= 0 && column + 2 < east) {
+					if (gb[column + 2][row - 2] == currentPlayer) {
+						succes += 1;
+						if (row - 3 >= 0 && column + 3 < east) {
+							if (gb[column + 3][row - 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (row + 1 < north && column - 1 >= 0) {
+			if (gb[column - 1][row + 1] == currentPlayer) {
+				succes += 1;
+				if (row + 2 < north && column - 2 >= 0) {
+					if (gb[column - 2][row + 2] == currentPlayer) {
+						succes += 1;
+						if (row + 3 < north && column - 3 >= 0) {
+							if (gb[column - 3][row + 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
 
-        // Iterates through the entire game board looking for a field with value zero
-        int columns = gameBoard.length;
-        int rows = gameBoard[0].length;
-        for (int c = 0; c < columns; c++) {
-            for (int r = 0; r < rows; r++) {
-                int fieldValue = gameBoard[c][r];
-                if (fieldValue == 0) {return -1;}
-            }
-        }
-        return 0;
-    }
+		if (succes >= 4) {
+			if (currentPlayer == 1) {
+				return Winner.PLAYER1;
+			} else {
+				return Winner.PLAYER2;
+			}
+		}
 
-    private int checkVertically(int[][] gameBoard) {
+		succes = 1;
 
-        int sum;
-        int columns = gameBoard.length;
-        int rows = gameBoard[0].length;
-        for (int c = 0; c < columns; c++) {
-            sum = 0;
-            int previousValue = 0;
-            for (int r = 0; r < rows; r++) {
-                int fieldValue = gameBoard[c][r];
-                if (fieldValue != previousValue) {sum = 0;}
-                previousValue = fieldValue;
-                sum += fieldValue;
-                if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
-                if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
-            }
-        }
+		if (row - 1 >= 0 && column - 1 >= 0) {
+			if (gb[column - 1][row - 1] == currentPlayer) {
+				succes += 1;
+				if (row - 2 >= 0 && column - 2 >= 0) {
+					if (gb[column - 2][row - 2] == currentPlayer) {
+						succes += 1;
+						if (row - 3 >= 0 && column - 3 >= 0) {
+							if (gb[column - 3][row - 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (row + 1 < north && column + 1 < north) {
+			if (gb[column + 1][row + 1] == currentPlayer) {
+				succes += 1;
+				if (row + 2 < north && column + 2 < north) {
+					if (gb[column + 2][row + 2] == currentPlayer) {
+						succes += 1;
+						if (row + 3 < north && column + 3 < north) {
+							if (gb[column + 3][row + 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
 
-        return -1;
-    }
+		if (succes >= 4) {
+			if (currentPlayer == 1) {
+				return Winner.PLAYER1;
+			} else {
+				return Winner.PLAYER2;
+			}
+		}
+		return Winner.NOT_FINISHED;
+	}
 
-    private int checkHorizontally(int[][] gameBoard) {
-        int sum;
-        int columns = gameBoard.length;
-        int rows = gameBoard[0].length;
-        for (int r = 0; r < rows; r++) {
-            sum = 0;
-            int previousValue = 0;
-            for (int c = 0; c < columns; c++) {
-                int fieldValue = gameBoard[c][r];
-                if (fieldValue != previousValue) {sum = 0;}
-                previousValue = fieldValue;
-                sum += fieldValue;
-                if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
-                if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
-            }
-        }
+	private Winner horizontalWinner(int row, int[][] gb) {
 
-        return -1;
-    }
+		int sum = 0;
+		for (int c = 0; c < gb.length; c++) {
+			int fieldValue = gb[c][row];
+			if (fieldValue != currentPlayer) {
+				sum = 0;
+			}
+			if (fieldValue == currentPlayer)
+				sum += 1;
+			if (sum == 4) {
+				if (currentPlayer == 1)
+					return Winner.PLAYER1;
+				else
+					return Winner.PLAYER2;
+			}
+		}
+		return Winner.NOT_FINISHED;
 
-    private int checkDiagonally(int[][] gameBoard) {
-        int sum;
-        int columns = gameBoard.length;
-        int rows = gameBoard[0].length;
+	}
 
-        for (int r = 0; r < rows - 3; r++) {
-            for (int c = 0; c < columns-3; c++) {
-                sum = 0;
-                int previousValue = 0;
-                for (int i = 0; i < 4 ; i++) {
-                    int fieldValue = gameBoard[c+i][r+i]; // add i to both to move diagonally
-                    if (fieldValue != previousValue) {sum = 0;}
-                    previousValue = fieldValue;
-                    sum += fieldValue;
-                    if (sum == 4) {return 1;} // sum == 4 since player1 tokens has a value of 1 and it takes 4 to win.
-                    if (sum == 8) {return 2;} // sum == 8 since player2 tokens has a value of 2 and it takes 4 to win.
-                }
-            }
+	private Winner verticalWinner(int row, int column, int[][] gb,
+			int currentPlayer) {
 
-        }
+		if (row > gb[column].length - 4)
+			return Winner.NOT_FINISHED; // vertical win not possible
 
-        return -1;
-    }
+		for (int i = row; i < gb[column].length && i < 4 + row; i++) {
+			if (gb[column][i] != currentPlayer) {
+				return Winner.NOT_FINISHED;
+			}
+		}
+		if (currentPlayer == 1)
+			return Winner.PLAYER1;
+		else
+			return Winner.PLAYER2;
+	}
 
-    /**
-     * Notifies that a token/coin is put in the specified column of 
-     * the game board. 
-     * @param column The column where the coin is inserted.      
-     * @param playerID The ID of the current player.
-     */
-    public void insertCoin(int column, int playerID) {
+	public int heuristic(int[][] gameBoard) {
 
-        //Iterate through rows in column until we find empty spot and place coin (code sakset fra FourConnectGUI)
-        if(column == -1) {
-            //todo throw exception
-        }
-        if (gameBoard[column][0] != 0) {
-            //todo throw exception
-        }
-        int r = gameBoard[column].length-1;
-        while(gameBoard[column][r]!=0) r--;
-        gameBoard[column][r]=playerID;
-    }
+		int valueV = valueVertically(gameBoard);
+		int valueH = valueHorizontally(gameBoard);
+		int valueD = valueDigonally(gameBoard);
 
-    /**
-     * Calculates the next move  This is where you should 
-     * implement/call your heuristic evaluation functions etc. 
-     */
-    public int decideNextMove() {
-        Random ra = new Random();
-        int x = ra.nextInt(7);
-        return x;
-    }
+		return valueV + valueH + valueD; // new Random().nextInt(50);//valueV;//
+											// + valueH + valueD;
+	}
+
+	private int valueVertically(int[][] gameBoard) {
+		int sum = 0;
+		int columns = gameBoard.length;
+		int rows = gameBoard[0].length - 1; // -1 since we want the array indices from 0 to 5
+
+		for (int c = 0; c < columns; c++) {
+			int cValue = 0;
+			int success = 0; //
+			int previousValue = 1000;
+			int value = 1000;
+			for (int r = rows; r >= 0; r--) {
+				int fieldValue = gameBoard[c][r];
+				if (fieldValue == 0) {
+					break;
+				}
+				if (fieldValue == 1) {
+					value = 1;
+				} else if (fieldValue == 2) {
+					value = -1;
+				}
+				cValue += value;
+				if (previousValue != value) {
+					if (r < 3) {
+						cValue = 0;
+						break;
+					}
+					
+					cValue = value;
+					
+				}
+				previousValue = fieldValue;
+
+			}
+			// Not sure if necessary
+			if (playerID == 1 && cValue == -3) {
+				return -500;
+			}
+			if (playerID == 2 && cValue == 3) {
+				return 500;
+			}
+			if (Math.abs(cValue) == 2) {
+				cValue *= 2;
+			} else if (Math.abs(cValue) == 3) {
+				cValue *= 3;
+			}
+			sum += cValue;
+		}
+		return sum;
+	}
+
+	private int valueHorizontally(int[][] gameBoard) {
+
+		int sum = 0;
+		int columns = gameBoard.length;
+		int rows = gameBoard[0].length;
+		for (int r = rows - 1; r >= 0; r--) { // want to start from array index0
+			int rValue = 0;
+			for (int c = 3; c < columns; c++) {
+				int fValue = 0;
+				int goodFor = -15;
+				boolean first = true;
+				for (int f = c - 3; f <= c; f++) { // check 4 continuous array
+													// indices, if both blue and
+													// red present skip
+					int fieldValue = gameBoard[f][r];
+					if (fieldValue == 0) {
+						continue;
+					}
+					if (first) {
+						goodFor = fieldValue;
+						first = false;
+					} else {
+						if (goodFor != fieldValue) {
+							fValue = 0;
+							break;
+						}
+					}
+					if (fieldValue == 1) {
+						fValue += fieldValue;
+					} else if (fieldValue == 2) {
+						fValue += -1;
+					}
+				}
+				if (Math.abs(fValue) == 2) {
+					fValue *= 2;
+				} else if (Math.abs(fValue) == 3) {
+					fValue *= 3;
+				}
+				rValue += fValue;
+			}
+
+			sum += rValue;
+		}
+		return sum;
+	}
+
+	private int valueDigonally(int[][] gameBoard) {
+		int sum = 0;
+		int columns = gameBoard.length;
+		int rows = gameBoard[0].length;
+
+		for (int r = 0; r < rows - 3; r++) {
+			int value = 0;
+			int rValue = 0;
+			for (int c = 0; c < columns - 3; c++) {
+				int goodFor = -15;
+				int fValue = 0;
+				boolean first = true;
+				for (int i = 0; i < 4; i++) {
+					int fieldValue = gameBoard[c + i][r + i]; // add i to both
+																// to move
+																// diagonally
+					if (fieldValue == 0) {
+						continue;
+					}
+					if (first) {
+						goodFor = fieldValue;
+						first = false;
+					} else {
+						if (goodFor != fieldValue) {
+							fValue = 0;
+							break;
+						}
+
+					}
+					if (fieldValue == 1) {
+						value = 1;
+					} else if (fieldValue == 2) {
+						value = -1;
+					}
+					fValue += value;
+				}
+				if (Math.abs(fValue) == 2) {
+					fValue *= 2;
+				} else if (Math.abs(fValue) == 3) {
+					fValue *= 3;
+				}
+				rValue += fValue;
+			}
+			sum += rValue;
+		}
+
+		for (int r = 0; r < rows - 3; r++) {
+			int value = 0;
+			int rValue = 0;
+			for (int c = 6; c >= columns - 4; c--) {
+				int goodFor = -15;
+				int fValue = 0;
+				boolean first = true;
+				for (int i = 0; i < 4; i++) {
+					int fieldValue = gameBoard[c - i][r + i]; // add i to both
+																// to move
+																// diagonally
+					if (fieldValue == 0) {
+						continue;
+					}
+					if (first) {
+						goodFor = fieldValue;
+						first = false;
+					} else {
+						if (goodFor != fieldValue) {
+							fValue = 0;
+							break;
+						}
+
+					}
+					if (fieldValue == 1) {
+						value = 1;
+					} else if (fieldValue == 2) {
+						value = -1;
+					}
+					fValue += value;
+				}
+				if (Math.abs(fValue) == 2) {
+					fValue *= 2;
+				} else if (Math.abs(fValue) == 3) {
+					fValue *= 3;
+				}
+				rValue += fValue;
+			}
+			sum += rValue;
+		}
+
+		return sum;
+	}
+}
+
+public class SuperDuperAwesomeGameLogic implements IGameLogic {
+	private int x = 0;
+	private int y = 0;
+	private int playerID;
+	private int currentPlayer = 1;
+	private int lastInsertedColumn = -1337;
+	private Winner winner = Winner.NOT_FINISHED;
+
+	private int[][] gameBoard;
+	private MiniMaxTree mm;
+
+	static public void printGameboard(int[][] gb) {
+		for (int i = 0; i < gb[0].length; i++) { // iterate over rows
+			if (i == 0) { // print out column heading
+				for (int l = 0; l < gb.length + 2; l++) {
+					if (l > 1) {
+						System.out.print(l - 1);
+					} else {
+						System.out.print(" ");
+					}
+				}
+				System.out.println();
+				for (int k = 0; k < gb.length + 2; k++) { // print out row
+															// heading
+					System.out.print("-");
+				}
+				System.out.println();
+			}
+
+			// print the actual content of the game board
+			for (int j = 0; j < gb.length; j++) {
+				if (j == 0) {
+					System.out.print(i + 1);
+					System.out.print("|");
+				}
+				System.out.print(gb[j][i]);
+			}
+			System.out.println();
+		}
+	}
+
+	public SuperDuperAwesomeGameLogic() {
+		// We initialize the instantiated object using the initializeGame method
+	}
+
+	/**
+	 * Creates a new empty game board of the specified dimensions and indicates
+	 * the ID of the player. This method will be called from the main function.
+	 * 
+	 * @param x
+	 *            The number of columns in the game board
+	 * @param y
+	 *            The number of rows in the game board
+	 * @param playerID
+	 *            1 = blue (player1), 2 = red (player2)
+	 */
+	public void initializeGame(int x, int y, int playerID) {
+		this.x = x;
+		this.y = y;
+		this.playerID = playerID;
+
+		// Create game board in the correct dimensions where x = columns and y =
+		// rows
+		// (why this has to be opposite to linear algebra beats me)
+		this.gameBoard = new int[x][y]; // initialized with zeros by default
+
+		this.mm = new MiniMaxTree(gameBoard, playerID);
+
+	}
+
+	/**
+	 * Checks if the game is finished or not.
+	 * 
+	 * @return the winner of the game
+	 */
+	public Winner gameFinished() {
+		return this.winner;
+		/*
+		 * We use the following codes for game status: NOT_FINISHED = -1 TIE = 0
+		 * PLAYER1 WIN = 1 PLAYER2 WIN = 2
+		 */
+
+		/*
+		 * int winner = -1; // initialized with -1 so that we skip the //
+		 * if-statements and return NOT_FINISHED
+		 * 
+		 * winner = checkBoardFull(gameBoard); if (winner == 0) { return
+		 * Winner.TIE; }
+		 * 
+		 * winner = checkHorizontally(gameBoard); if (winner == 1) { return
+		 * Winner.PLAYER1; } if (winner == 2) { return Winner.PLAYER2; } winner
+		 * = checkDiagonally(gameBoard); if (winner == 1) { return
+		 * Winner.PLAYER1; } if (winner == 2) { return Winner.PLAYER2; }
+		 * 
+		 * winner = checkVertically(gameBoard);
+		 * 
+		 * if (winner == 1) { return Winner.PLAYER1; } if (winner == 2) { return
+		 * Winner.PLAYER2; }
+		 * 
+		 * return Winner.NOT_FINISHED;
+		 */
+	}
+
+	private void changeWinner() {
+		int column = lastInsertedColumn;
+		int row = -1; // if not changed = error
+		for (int i = 0; i < gameBoard[column].length; i++) {
+			if (this.gameBoard[column][i] != 0) {
+				row = i; // row = row where last token was dropped
+				break;
+			}
+		}
+
+		if (horizontalWinner(row, column))
+			return;
+		if (verticalWinner(row, column))
+			return;
+		diagonalWinner(row, column);
+		/*
+		 * int goodforPlayer = -44; for (int f = 0; f < gameBoard.length; f++) {
+		 * if (gameBoard[f][0] == 0 ) continue; (goodforPlayer == 44) ?
+		 * goodforPlayer=gameBoard[f][0] : (goodforPlayer==gameBoard[f][0] ?
+		 * continue : break); }
+		 */
+
+	}
+
+	private void diagonalWinner(int row, int column) {
+		int east = gameBoard.length;
+		int north = gameBoard[column].length;
+
+		int succes = 1;
+		if (row - 1 >= 0 && column + 1 < east) {
+			if (gameBoard[column + 1][row - 1] == currentPlayer) {
+				succes += 1;
+				if (row - 2 >= 0 && column + 2 < east) {
+					if (gameBoard[column + 2][row - 2] == currentPlayer) {
+						succes += 1;
+						if (row - 3 >= 0 && column + 3 < east) {
+							if (gameBoard[column + 3][row - 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (row + 1 < north && column - 1 >= 0) {
+			if (gameBoard[column - 1][row + 1] == currentPlayer) {
+				succes += 1;
+				if (row + 2 < north && column - 2 >= 0) {
+					if (gameBoard[column - 2][row + 2] == currentPlayer) {
+						succes += 1;
+						if (row + 3 < north && column - 3 >= 0) {
+							if (gameBoard[column - 3][row + 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (succes >= 4) {
+			if (currentPlayer == 1) {
+				winner = Winner.PLAYER1;
+			} else {
+				winner = Winner.PLAYER2;
+			}
+			return;
+		}
+
+		succes = 1;
+
+		if (row - 1 >= 0 && column - 1 >= 0) {
+			if (gameBoard[column - 1][row - 1] == currentPlayer) {
+				succes += 1;
+				if (row - 2 >= 0 && column - 2 >= 0) {
+					if (gameBoard[column - 2][row - 2] == currentPlayer) {
+						succes += 1;
+						if (row - 3 >= 0 && column - 1 >= 0) {
+							if (gameBoard[column - 3][row - 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (row + 1 < north && column + 1 < north) {
+			if (gameBoard[column + 1][row + 1] == currentPlayer) {
+				succes += 1;
+				if (row + 2 < north && column + 2 < north) {
+					if (gameBoard[column + 2][row + 2] == currentPlayer) {
+						succes += 1;
+						if (row + 3 < north && column + 3 < north) {
+							if (gameBoard[column + 3][row + 3] == currentPlayer) {
+								succes += 1;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (succes >= 4) {
+			if (currentPlayer == 1) {
+				winner = Winner.PLAYER1;
+			} else {
+				winner = Winner.PLAYER2;
+			}
+		}
+	}
+
+	private boolean horizontalWinner(int row, int column) {
+		int sum = 0;
+		int previousValue = 0;
+		for (int c = 0; c < gameBoard.length; c++) {
+			int fieldValue = gameBoard[c][row];
+			if (fieldValue != previousValue) {
+				sum = 0;
+			}
+			previousValue = fieldValue;
+			if (fieldValue == 1)
+				sum += 1;
+			else if (fieldValue == 2)
+				sum -= 1;
+			if (sum == 4) {
+				winner = Winner.PLAYER1;
+				return true;
+			} else if (sum == -4) {
+				winner = Winner.PLAYER2;
+				return true;
+			}
+		}
+		return false;
+
+	}
+
+	private boolean verticalWinner(int row, int column) {
+		if (row > gameBoard[column].length - 4)
+			return false; // vertical win not possible
+
+		for (int i = row; i < gameBoard[column].length && i < 4 + row; i++) {
+			if (gameBoard[column][i] != currentPlayer) {
+				return false;
+			}
+		}
+		if (currentPlayer == 1)
+			winner = Winner.PLAYER1;
+		else
+			winner = Winner.PLAYER2;
+		return true;
+	}
+
+	/**
+	 * Notifies that a token/coin is put in the specified column of the game
+	 * board.
+	 * 
+	 * @param column
+	 *            The column where the coin is inserted.
+	 * @param playerID
+	 *            The ID of the current player.
+	 */
+	public void insertCoin(int column, int playerID) {
+		currentPlayer = playerID;
+		lastInsertedColumn = column;
+		System.out.println("first");
+		printGameboard(gameBoard);
+
+		// Iterate through rows in column until we find empty spot and place
+		// coin (code sakset fra FourConnectGUI)
+		if (column == -1) {
+			// todo throw exception
+		}
+		if (gameBoard[column][0] != 0) {
+			// todo throw exception
+		}
+		int r = gameBoard[column].length - 1;
+		while (gameBoard[column][r] != 0)
+			r--;
+		gameBoard[column][r] = playerID;
+		mm.root = mm.buildTree(gameBoard, playerID);
+		System.out.println();
+		System.out.println("heuristic:"
+				+ new MiniMaxTree(gameBoard, playerID).heuristic(gameBoard));
+		SuperDuperAwesomeGameLogic.printGameboard(gameBoard);
+		changeWinner();
+
+	}
+
+	/**
+	 * Calculates the next move This is where you should implement/call your
+	 * heuristic evaluation functions etc.
+	 */
+	public int decideNextMove() {
+		return mm.miniMax();
+	}
 
 }
 
-//TODO: something
-// Heuristic (count 2's and 3s, possibilites (Are they close to completion? ruin theirs)
+// TODO: something
+// Heuristic (count 2's and 3s, possibilites (Are they close to completion? ruin
+// theirs)
 // decision tree
 // finished
-// decide move (should create tree (from board) go through, call heuristic on node X, return highest value and translate to a colum
+// decide move (should create tree (from board) go through, call heuristic on
+// node X, return highest value and translate to a colum
 // constructor: initialize board + insert coin method
